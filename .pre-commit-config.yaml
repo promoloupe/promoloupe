@@ -1,4 +1,5 @@
-default_install_hook_types: [pre-commit, commit-msg]
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -28,3 +29,48 @@ repos:
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (reviewer)
+        entry: uv run --project reviewer ruff check --fix
+        language: system
+        types: [python]
+        files: ^reviewer/
+
+      - id: ruff-format
+        name: ruff format (reviewer)
+        entry: uv run --project reviewer ruff format
+        language: system
+        types: [python]
+        files: ^reviewer/
+
+      - id: mypy
+        name: mypy (reviewer)
+        entry: uv run --directory reviewer mypy
+        language: system
+        types: [python]
+        files: ^reviewer/
+        pass_filenames: false
+
+      - id: gofmt
+        name: gofmt
+        entry: gofmt -l -w
+        language: system
+        types: [go]
+
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: golangci-lint
+        name: golangci-lint
+        entry: make lint
+        language: system
+        types: [go]
+        pass_filenames: false
+        stages: [pre-push]
