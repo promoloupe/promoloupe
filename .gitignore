@@ -6,6 +6,7 @@
 *.out
 cover.out
 coverage.*
+Dockerfile.cross
 
 # Go
 /vendor/
