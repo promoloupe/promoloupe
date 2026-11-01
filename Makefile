@@ -1,3 +1,6 @@
+# Use exactly the Go toolchain declared in go.mod, so local builds match CI.
+export GOTOOLCHAIN := $(shell sed -n 's/^toolchain //p' go.mod)
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 # YEAR defines the year value used for substituting the YEAR placeholder in the boilerplate header.
