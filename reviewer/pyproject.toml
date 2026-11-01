@@ -1,0 +1,72 @@
+[project]
+name = "promoloupe-reviewer"
+version = "0.1.0"
+description = "AI agent that reviews the risk of GitOps promotions for promoloupe"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    { name = "The promoloupe Authors" },
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.urls]
+Homepage = "https://promoloupe.com"
+Repository = "https://github.com/promoloupe/promoloupe"
+Issues = "https://github.com/promoloupe/promoloupe/issues"
+
+[project.scripts]
+promoloupe-reviewer = "promoloupe_reviewer:main"
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle: estilo básico
+    "F",       # pyflakes: imports y variables sin usar, nombres indefinidos
+    "I",       # isort: orden de imports
+    "B",       # flake8-bugbear: patrones que suelen ser bugs
+    "UP",      # pyupgrade: sintaxis moderna de Python
+    "SIM",     # flake8-simplify: código que se puede simplificar
+    "C4",      # flake8-comprehensions: comprensiones correctas
+    "N",       # pep8-naming: convenciones de nombres
+    "S",       # flake8-bandit: problemas de seguridad
+    "PT",      # flake8-pytest-style: buenas prácticas en tests
+    "RET",     # flake8-return: returns coherentes
+    "PTH",     # flake8-use-pathlib: pathlib en vez de os.path
+    "RUF",     # reglas propias de ruff
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "--strict-config", "-ra", "--cov"]
+
+[tool.coverage.run]
+source = ["promoloupe_reviewer"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
