@@ -20,5 +20,6 @@ that supersedes the old one and update the status of both.
 | [0009](0009-ports-and-adapters.md) | Ports and adapters | Accepted |
 | [0010](0010-cli-as-kubectl-plugin.md) | Go CLI usable as a kubectl plugin | Accepted |
 | [0011](0011-no-ui-until-1-0.md) | No UI until 1.0, then an OpenShift console plugin | Accepted |
+| [0012](0012-versioned-ai-assistant-configuration.md) | Versioned configuration for AI coding assistants | Accepted |
 
 New records use [template.md](template.md).
