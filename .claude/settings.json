@@ -46,5 +46,20 @@
       "Edit(config/crd/bases/**)",
       "Edit(config/rbac/role.yaml)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-and-lint.sh",
+            "args": [],
+            "timeout": 60
+          }
+        ]
+      }
+    ]
   }
 }
