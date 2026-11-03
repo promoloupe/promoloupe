@@ -36,15 +36,15 @@
       "Bash(uv add *)"
     ],
     "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Read(*.kubeconfig)",
+      "Read(//**/.env)",
+      "Read(//**/.env.*)",
+      "Read(//**/*.kubeconfig)",
       "Read(~/.kube/**)",
       "Read(~/.ssh/**)",
       "Read(~/.gnupg/**)",
-      "Edit(zz_generated.*.go)",
-      "Edit(config/crd/bases/**)",
-      "Edit(config/rbac/role.yaml)"
+      "Edit(/**/zz_generated.*.go)",
+      "Edit(/config/crd/bases/**)",
+      "Edit(/config/rbac/role.yaml)"
     ]
   },
   "hooks": {
