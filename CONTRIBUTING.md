@@ -30,7 +30,8 @@ changes and what we expect from a contribution.
 You will need:
 
 - Go (version pinned in `go.mod`)
-- Python 3.12 or later and [uv](https://docs.astral.sh/uv/)
+- [uv](https://docs.astral.sh/uv/) (version range in `reviewer/pyproject.toml`),
+  which installs the Python version pinned in `reviewer/.python-version`
 - Docker or Podman, and [kind](https://kind.sigs.k8s.io/) for end-to-end tests
 - [pre-commit](https://pre-commit.com/)
 
