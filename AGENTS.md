@@ -50,9 +50,12 @@ Never edit these by hand; change the source and regenerate:
 - Never read, print or commit secrets: `.env` files, kubeconfigs, API keys.
 - Read the relevant ADR in `docs/adr/` before changing a design decision. A new
   significant decision needs a new ADR.
+- Never sign off commits (`-s`) or add `Signed-off-by` or AI co-author
+  trailers. The human contributor signs off after reviewing the change; see
+  `CONTRIBUTING.md`.
 
 ## Contributing
 
-Commits follow Conventional Commits and are signed off (`git commit -s`).
-Changes reach `main` only through pull requests. See `CONTRIBUTING.md` and
-`docs/maintainers/branch-protection.md`.
+Commits follow Conventional Commits and are signed off by the human
+contributor. Changes reach `main` only through pull requests. See
+`CONTRIBUTING.md` and `docs/maintainers/branch-protection.md`.

@@ -71,6 +71,23 @@ the right to submit it under the project's license, as described in the
 git commit -s -m "feat(controller): add soak time gate"
 ```
 
+### AI-assisted contributions
+
+You may use AI coding assistants to help with a contribution. The repository
+ships instructions for them in [`AGENTS.md`](AGENTS.md), and an assisted
+change is held to the same standards as any other.
+
+- **You are the author.** You must have read, understood and tested every
+  line you submit, and be able to explain it during review. "The assistant
+  wrote it" is not an answer to a review comment.
+- **Sign-off is yours alone.** Only a person can certify the DCO. Assistants
+  must not add `Signed-off-by` lines. You add your own with `git commit -s`
+  once you have reviewed the change, and by doing so you confirm you have the
+  right to submit it under the project's license.
+- **Verify before you report.** Do not file issues or security reports you
+  have not reproduced yourself. Unverified, AI-generated reports will be
+  closed.
+
 ### Code standards
 
 - **Go:** `gofmt`, `golangci-lint` and controller-runtime conventions.

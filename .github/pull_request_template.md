@@ -13,3 +13,4 @@
 - [ ] Tests cover the change
 - [ ] Documentation is updated, or no change is needed
 - [ ] CRD or other API changes are backwards compatible, or the breaking change is called out
+- [ ] I have reviewed and understood every line of this change
