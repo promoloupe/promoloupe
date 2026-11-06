@@ -34,7 +34,3 @@ jobs:
             ci
             chore
             revert
-          subjectPattern: ^(?![A-Z]).+$
-          subjectPatternError: |
-            The subject "{subject}" in the title "{title}" must start with a
-            lowercase letter.
