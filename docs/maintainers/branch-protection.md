@@ -52,17 +52,30 @@ Each check is bound to its source, so a different app or workflow reporting a
 status with the same name cannot satisfy it.
 
 "CI result" aggregates every job in the CI workflow: Lint, Unit tests, E2E
-tests on kind and Reviewer. On pull requests, a `changes` job skips the jobs
-whose files did not change: Go jobs are skipped when only `reviewer/`, `docs/`
-or Markdown files change, and the Reviewer job when nothing under `reviewer/`
-changes. On pushes to `main`, every job runs. "CI result" fails if any job
-failed or was cancelled, and passes when the rest succeeded or were skipped.
-Jobs can be added, renamed or removed without touching the ruleset.
+tests on kind, Go vulnerability check and Reviewer. On pull requests, a
+`changes` job skips the jobs whose files did not change: Go jobs are skipped
+when only `reviewer/`, `docs/` or Markdown files change, and the Reviewer job
+when nothing under `reviewer/` changes. On pushes to `main`, every job runs.
+"CI result" fails if any job failed or was cancelled, and passes when the rest
+succeeded or were skipped. Jobs can be added, renamed or removed without
+touching the ruleset.
 
 The PR title check runs on `pull_request_target`, so it always uses the
 workflow from `main` and also works for pull requests from forks. It never
 checks out pull request code. A change to `pr-title.yml` only takes effect
 after it is merged.
+
+## The `release-tags` ruleset
+
+| Rule | Value | Why |
+| --- | --- | --- |
+| Enforcement status | Active | |
+| Bypass list | Empty | The rules apply to everyone, administrators included. |
+| Target | Tags matching `v*` | The release tags that release-please creates. |
+| Restrict creations | Off | release-please must be able to create tags. |
+| Restrict updates | On | A published version never points to a different commit. |
+| Restrict deletions | On | A published version never disappears. |
+| Block force pushes | On | Moving a tag with a force push is also an update. |
 
 ## Repository settings
 
@@ -76,6 +89,32 @@ Under **Settings > General > Pull Requests**:
 | Allow rebase merging | Off | |
 | Always suggest updating pull request branches | On | Needed because checks must run on an up-to-date branch. |
 | Automatically delete head branches | On | Merged branches are removed from GitHub. |
+
+## Security settings
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| Dependabot alerts | On | Reports known vulnerabilities in dependencies. |
+| Dependabot security updates | On | Opens a fix pull request as soon as a vulnerability is published, outside the weekly schedule. |
+| Secret scanning | On | Finds credentials from known providers anywhere in the history. |
+| Push protection | On | Rejects pushes that contain a detected secret. |
+| Private vulnerability reporting | On | The private channel that `SECURITY.md` points to. |
+| CodeQL default setup | Actions, Go and Python, default query suite | Static analysis on every pull request, every push to `main` and weekly. |
+| Require actions pinned to a full SHA | On | A workflow cannot use an action that is not pinned to a commit. |
+| Default `GITHUB_TOKEN` permissions | Read | Workflows must request write access explicitly. |
+| Allow Actions to create and approve pull requests | Off | |
+| Approval for fork pull request workflows | First-time contributors | Workflows from a contributor's first pull request wait for a maintainer. |
+
+The organization requires two-factor authentication for every member, with
+secure methods only.
+
+Non-provider secret patterns and secret validity checks are not enabled. They
+are part of GitHub Secret Protection, and provider patterns, push protection
+and the local gitleaks hook cover the project's needs.
+
+The [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/promoloupe/promoloupe)
+workflow scores these practices on every push to `main` and weekly, and
+reports its findings in code scanning.
 
 ## DCO
 
@@ -137,6 +176,27 @@ In that output, `deletion` is "Restrict deletions", `non_fast_forward` is
 branches must be up to date. In the required checks, `integration_id` 1861 is
 the DCO app and 15368 is GitHub Actions. `PR_TITLE` with `COMMIT_MESSAGES` is
 the "Pull request title and commit details" squash message.
+
+The `release-tags` ruleset:
+
+```
+gh api repos/promoloupe/promoloupe/rulesets/26720762 --jq '{conditions, bypass_actors, rules: [.rules[].type]}'
+```
+
+Security settings:
+
+```
+gh api repos/promoloupe/promoloupe --jq '.security_and_analysis'
+gh api -i repos/promoloupe/promoloupe/vulnerability-alerts | head -1
+gh api repos/promoloupe/promoloupe/automated-security-fixes
+gh api repos/promoloupe/promoloupe/private-vulnerability-reporting
+gh api repos/promoloupe/promoloupe/code-scanning/default-setup --jq '{state, languages, query_suite}'
+gh api repos/promoloupe/promoloupe/actions/permissions
+gh api repos/promoloupe/promoloupe/actions/permissions/workflow
+gh api repos/promoloupe/promoloupe/actions/permissions/fork-pr-contributor-approval
+```
+
+Dependabot alerts answer `204` when enabled and `404` when disabled.
 
 If GitHub and this document differ, either a setting was changed by mistake
 and must be restored, or the change was intended and this document needs a

@@ -1,5 +1,7 @@
 # promoloupe
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/promoloupe/promoloupe/badge)](https://scorecard.dev/viewer/?uri=github.com/promoloupe/promoloupe)
+
 **Agentic risk review for GitOps promotions.**
 
 promoloupe watches promotions between environments in a GitOps repository
