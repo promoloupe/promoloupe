@@ -19,8 +19,8 @@ changes, this file changes in a pull request too.
 - The pull request title is a valid
   [Conventional Commit](https://www.conventionalcommits.org/). It becomes the
   commit message on `main`.
-- The five required checks pass and the branch is up to date with `main`. Use
-  the **Update branch** button or rebase onto `main`.
+- The three required checks pass and the branch is up to date with `main`.
+  Use the **Update branch** button or rebase onto `main`.
 - All review conversations are resolved.
 
 ## The `main` ruleset
@@ -45,23 +45,24 @@ changes, this file changes in a pull request too.
 | Check | Source | Defined in |
 | --- | --- | --- |
 | DCO | DCO app | [github.com/apps/dco](https://github.com/apps/dco) |
-| Lint | GitHub Actions | `.github/workflows/lint.yml` |
-| Unit tests | GitHub Actions | `.github/workflows/test.yml` |
-| E2E tests on kind | GitHub Actions | `.github/workflows/test-e2e.yml` |
 | Validate PR title | GitHub Actions | `.github/workflows/pr-title.yml` |
+| CI result | GitHub Actions | `.github/workflows/ci.yml` |
 
 Each check is bound to its source, so a different app or workflow reporting a
 status with the same name cannot satisfy it.
+
+"CI result" aggregates every job in the CI workflow: Lint, Unit tests, E2E
+tests on kind and Reviewer. On pull requests, a `changes` job skips the jobs
+whose files did not change: Go jobs are skipped when only `reviewer/`, `docs/`
+or Markdown files change, and the Reviewer job when nothing under `reviewer/`
+changes. On pushes to `main`, every job runs. "CI result" fails if any job
+failed or was cancelled, and passes when the rest succeeded or were skipped.
+Jobs can be added, renamed or removed without touching the ruleset.
 
 The PR title check runs on `pull_request_target`, so it always uses the
 workflow from `main` and also works for pull requests from forks. It never
 checks out pull request code. A change to `pr-title.yml` only takes effect
 after it is merged.
-
-The reviewer workflow (`.github/workflows/reviewer.yml`) is not required. It
-only runs when files under `reviewer/` change, and a required check that never
-runs stays in "Expected" and blocks the merge. It will become required once the
-workflows report through a single aggregate job.
 
 ## Repository settings
 
