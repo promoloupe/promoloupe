@@ -4,6 +4,30 @@ metadata:
   labels:
     app.kubernetes.io/name: promoloupe
     app.kubernetes.io/managed-by: kustomize
-  name: promotionpolicy-sample
+  name: checkout
 spec:
-  # TODO(user): Add fields here
+  repository:
+    provider: GitLab
+    url: https://gitlab.com/acme/gitops
+    credentialsSecretRef:
+      name: gitlab-token
+  environments:
+    - name: dev
+      path: apps/checkout/overlays/dev
+    - name: staging
+      path: apps/checkout/overlays/staging
+      merge: Automatic
+      gates:
+        minSoakTimeMinutes: 60
+        argoCD:
+          application: checkout-dev
+    - name: prod
+      path: apps/checkout/overlays/prod
+      gates:
+        minSoakTimeMinutes: 1440
+        requiredApprovals: 1
+        freezeWindows:
+          - schedule: "0 18 * * 5"
+            durationMinutes: 3840
+        argoCD:
+          application: checkout-staging

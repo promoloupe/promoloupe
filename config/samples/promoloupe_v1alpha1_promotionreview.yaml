@@ -1,9 +1,20 @@
+# PromotionReviews are created by the controller, not by users.
+# This sample shows the shape of the resource.
 apiVersion: promoloupe.com/v1alpha1
 kind: PromotionReview
 metadata:
   labels:
     app.kubernetes.io/name: promoloupe
     app.kubernetes.io/managed-by: kustomize
-  name: promotionreview-sample
+  name: checkout-staging-to-prod-9f2c1ab
 spec:
-  # TODO(user): Add fields here
+  policyRef:
+    name: checkout
+  from: staging
+  to: prod
+  sourceRevision: 9f2c1ab
+  changes:
+    - path: apps/checkout/overlays/prod/kustomization.yaml
+      field: images[name=checkout].newTag
+      from: "1.4.2"
+      to: "1.5.0"

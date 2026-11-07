@@ -1,6 +1,6 @@
 # API design: promoloupe.com/v1alpha1
 
-- **Status:** Draft
+- **Status:** Implemented
 - **API version:** `promoloupe.com/v1alpha1`
 
 This document specifies the custom resources that promoloupe exposes. The Go
@@ -22,12 +22,19 @@ promoloupe defines two namespaced kinds:
 
 ## Conventions
 
+The types follow the Kubernetes API conventions and are checked by
+kube-api-linter.
+
 - `spec` holds the desired state and `status` the observed state. Status is
   written only through the status subresource.
 - Every status has `observedGeneration` and a list of standard
   `metav1.Condition`. There are no `phase` fields.
-- Durations use Go duration strings such as `1h` or `30m`.
-- Enum values are PascalCase.
+- Durations are integers with the unit in the field name, such as
+  `minSoakTimeMinutes`, so that clients in any language can read them.
+- Enums are preferred over booleans, so that a field can gain new values
+  later. Enum values are PascalCase.
+- Every string and list has a maximum size, which also bounds the cost of the
+  CEL validation rules.
 - Credentials are referenced through Secrets, never stored in a resource.
 - The controller and the reviewer write different status fields using
   server-side apply, with the field managers `promoloupe-controller` and
@@ -53,26 +60,24 @@ spec:
       path: apps/checkout/overlays/dev
     - name: staging
       path: apps/checkout/overlays/staging
-      autoMerge: true
+      merge: Automatic
       gates:
-        minSoakTime: 1h
+        minSoakTimeMinutes: 60
         argoCD:
           application: checkout-dev
     - name: prod
       path: apps/checkout/overlays/prod
       gates:
-        minSoakTime: 24h
+        minSoakTimeMinutes: 1440
         requiredApprovals: 1
         freezeWindows:
           - schedule: "0 18 * * 5"
-            duration: 64h
+            durationMinutes: 3840
         argoCD:
           application: checkout-staging
   promotable:
     - Images
     - HelmChartVersions
-  review:
-    mode: Advisory
 status:
   observedGeneration: 3
   conditions:
@@ -94,25 +99,26 @@ status:
 | `repository.url` | string | Yes | | HTTPS URL of the GitOps repository. |
 | `repository.branch` | string | No | `main` | Branch that holds every environment. |
 | `repository.credentialsSecretRef.name` | string | Yes | | Secret in the same namespace with the access token under the key `token`. |
-| `environments` | list | Yes | | Ordered chain of environments. Each one is promoted to the next. |
+| `environments` | list | Yes | | Ordered chain of 2 to 10 environments. Each one is promoted to the next. |
 | `environments[].name` | string | Yes | | DNS label, unique within the policy. |
 | `environments[].path` | string | Yes | | Directory of the environment in the repository (ADR 0002). |
-| `environments[].autoMerge` | bool | No | `false` | Merge the promotion into this environment automatically when the gates pass. |
-| `environments[].gates` | object | No | | Conditions a change must meet to be promoted into this environment. |
-| `gates.minSoakTime` | duration | No | | Minimum time the change must have run in the previous environment. |
-| `gates.requiredApprovals` | integer | No | `0` | Approvals required on the merge request. |
-| `gates.freezeWindows[].schedule` | string | Yes | | Cron expression for the start of a window in which promotions are blocked. |
-| `gates.freezeWindows[].duration` | duration | Yes | | Length of the window. |
-| `gates.argoCD.application` | string | No | | Argo CD Application of the previous environment that must be Healthy and Synced. |
+| `environments[].merge` | enum | No | `Manual` | How promotions into this environment are merged: `Manual` or `Automatic` when every gate passes. |
+| `environments[].gates` | object | No | | Conditions a change must meet to be promoted into this environment. At least one when present. |
+| `gates.minSoakTimeMinutes` | integer | No | | Minimum time, in minutes, the change must have run in the previous environment. 1 to 43200. |
+| `gates.requiredApprovals` | integer | No | | Approvals required on the merge request. 1 to 10. |
+| `gates.freezeWindows[].schedule` | string | Yes | | Cron expression, in UTC, for the start of a window in which promotions are blocked. |
+| `gates.freezeWindows[].durationMinutes` | integer | Yes | | Length of the window in minutes. 1 to 43200. |
+| `gates.argoCD.application` | string | Yes | | Argo CD Application of the previous environment that must be Healthy and Synced. |
+| `gates.argoCD.namespace` | string | No | `argocd` | Namespace of the Argo CD Application. |
 | `promotable` | list of enum | No | `[Images, HelmChartVersions]` | What travels between environments (ADR 0003). |
-| `review.mode` | enum | No | `Advisory` | How the reviewer's verdict is used. `Advisory` is the only value in v1alpha1. |
 
 ### Validation
 
-- `environments` has at least two items, and their names are unique.
+- `environments` has between 2 and 10 items, and their names are unique.
 - The first environment has no `gates`, because nothing is promoted into it.
-- The last environment cannot set `autoMerge: true`. The final promotion is
-  always merged by a person.
+- Promotions into the last environment cannot use `merge: Automatic`. The
+  final promotion is always merged by a person.
+- `repository.url` starts with `https://`.
 
 ### Status
 
@@ -123,6 +129,8 @@ status:
 | `environments[].name` | Environment name. |
 | `environments[].revision` | Commit of the repository last observed for the environment. |
 | `environments[].pendingReview` | Name of the open PromotionReview from this environment to the next, if any. |
+
+`kubectl get promotionpolicies` shows the `Ready` condition and the age.
 
 ## PromotionReview
 
@@ -152,10 +160,10 @@ status:
   mergeRequest:
     url: https://gitlab.com/acme/gitops/-/merge_requests/42
   gates:
-    - name: minSoakTime
-      passed: true
-    - name: requiredApprovals
-      passed: false
+    - name: MinSoakTime
+      result: Passed
+    - name: RequiredApprovals
+      result: Failed
       message: 0 of 1 approvals.
   verdict:
     recommendation: Hold
@@ -185,12 +193,14 @@ controller creates a new PromotionReview instead of editing the existing one.
 | --- | --- | --- |
 | `policyRef.name` | string | PromotionPolicy in the same namespace. |
 | `from` | string | Source environment. |
-| `to` | string | Target environment, the next one in the chain. |
-| `sourceRevision` | string | Commit of the source environment being promoted. |
+| `to` | string | Target environment, the next one in the chain. Different from `from`. |
+| `sourceRevision` | string | Commit of the source environment being promoted, as 7 to 64 lowercase hexadecimal characters. |
 | `changes[].path` | string | File changed in the target environment. |
 | `changes[].field` | string | Promotable field within the file. |
-| `changes[].from` | string | Current value in the target environment. |
+| `changes[].from` | string | Current value in the target environment. Omitted when the field does not exist yet. |
 | `changes[].to` | string | Value promoted from the source environment. |
+
+`changes` has between 1 and 100 items.
 
 ### Status
 
@@ -200,12 +210,17 @@ Each field has a single owner.
 | --- | --- | --- |
 | `observedGeneration` | controller | Generation of the spec that the status reflects. |
 | `mergeRequest.url` | controller | Merge request opened for the promotion. |
-| `gates[]` | controller | Result of each gate, with a message when it fails. |
+| `gates[].name` | controller | `MinSoakTime`, `RequiredApprovals`, `FreezeWindows` or `ArgoCD`. |
+| `gates[].result` | controller | `Passed`, `Failed`, or `Unknown` when the gate could not be evaluated. |
+| `gates[].message` | controller | Explanation of the result. |
 | `verdict.recommendation` | reviewer | `Approve`, `Hold` or `Block`. A recommendation only (ADR 0006). |
 | `verdict.risk` | reviewer | `Low`, `Medium` or `High`. |
 | `verdict.summary` | reviewer | Plain-language explanation of the change and its risk. |
 | `verdict.evidence[]` | reviewer | Source and detail of each fact behind the verdict. |
 | `conditions` | both | `GatesPassed` and `Merged` are owned by the controller, `Reviewed` by the reviewer. |
+
+`kubectl get promotionreviews` shows the source and target environments, the
+recommendation, the `Merged` condition and the age.
 
 ### Lifecycle
 
@@ -215,8 +230,8 @@ Each field has a single owner.
 3. The reviewer analyses the promotion and publishes its verdict in the
    status. The controller copies it to the merge request.
 4. The controller evaluates the gates on every reconciliation.
-5. When the gates pass, the controller merges if the target environment has
-   `autoMerge: true`. Otherwise a person merges.
+5. When the gates pass, the controller merges if the target environment uses
+   `merge: Automatic`. Otherwise a person merges.
 6. If the reviewer fails, `Reviewed` stays `False` and nothing is promoted
    automatically (ADR 0008).
 
@@ -236,6 +251,9 @@ policies. A wrong verdict can only delay a promotion, never cause one.
 
 ## Out of scope for v1alpha1
 
-- A `Blocking` review mode, where a `Block` verdict prevents automatic merges.
+- Configuring how the verdict is used. In v1alpha1 it is always advisory: it
+  is published on the merge request and never blocks it. A future `review`
+  field may add a mode where a `Block` verdict prevents automatic merges.
 - Git providers other than GitLab.
 - Flux as a source of health checks (ADR 0004).
+- Time zones for freeze windows, which use UTC.
