@@ -1,0 +1,9 @@
+apiVersion: promoloupe.com/v1alpha1
+kind: PromotionReview
+metadata:
+  labels:
+    app.kubernetes.io/name: promoloupe
+    app.kubernetes.io/managed-by: kustomize
+  name: promotionreview-sample
+spec:
+  # TODO(user): Add fields here

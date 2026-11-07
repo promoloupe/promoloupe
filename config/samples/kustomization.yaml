@@ -1,0 +1,5 @@
+## Append samples of your project ##
+resources:
+- promoloupe_v1alpha1_promotionpolicy.yaml
+- promoloupe_v1alpha1_promotionreview.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
