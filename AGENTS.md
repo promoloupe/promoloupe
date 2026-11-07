@@ -42,6 +42,8 @@ Never edit these by hand; change the source and regenerate:
 
 - API types follow Kubernetes API conventions. Never remove or repurpose a
   field in an existing version; add new optional fields instead.
+- The API is specified in `docs/design/api-v1alpha1.md`. A change to the
+  types in `api/` changes that document in the same pull request.
 - Every Go file starts with the license header in `hack/boilerplate.go.txt`.
 - Do not change the Go toolchain in `go.mod`, the uv version in
   `reviewer/pyproject.toml` or tool versions in the Makefile unless asked.
