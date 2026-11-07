@@ -25,8 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	promoloupev1alpha1 "github.com/promoloupe/promoloupe/api/v1alpha1"
 )
 
@@ -49,19 +47,12 @@ var _ = Describe("PromotionReview Controller", func() {
 			By("creating the custom resource for the Kind PromotionReview")
 			err := k8sClient.Get(ctx, typeNamespacedName, promotionreview)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &promoloupev1alpha1.PromotionReview{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: resourceNamespace,
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
+				resource := validPromotionReview(resourceName)
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
 		})
 
 		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
 			resource := &promoloupev1alpha1.PromotionReview{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
@@ -80,8 +71,6 @@ var _ = Describe("PromotionReview Controller", func() {
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
 		})
 	})
 })

@@ -24,11 +24,34 @@ linters:
     - unparam
     - unused
     - logcheck
+    - kubeapilinter
   settings:
     custom:
       logcheck:
         type: "module"
         description: Checks Go logging calls for Kubernetes logging conventions.
+      kubeapilinter:
+        type: "module"
+        description: Checks API types against the Kubernetes API conventions.
+        settings:
+          linters:
+            disable:
+              # Meant for in-tree types validated in Go, not for CRDs,
+              # where OpenAPI validates optionality.
+              - nonpointerstructs
+          lintersConfig:
+            conditions:
+              # Custom resources do not support strategic merge patch or protobuf.
+              usePatchStrategy: Forbid
+              useProtobuf: Forbid
+            optionalfields:
+              pointers:
+                # Optional structs use omitzero instead of a pointer when their
+                # zero value is invalid, for example with MinProperties=1.
+                preference: WhenRequired
+            defaults:
+              # Kubebuilder's documented marker, used across the scaffold.
+              preferredDefaultMarker: kubebuilder:default
     depguard:
       rules:
         forbid-sort-pkg:
@@ -52,6 +75,9 @@ linters:
           - dupl
           - lll
         path: internal/*
+      - linters:
+          - kubeapilinter
+        path-except: api/*
     paths:
       - third_party$
       - builtin$

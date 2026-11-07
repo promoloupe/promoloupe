@@ -14,10 +14,28 @@ spec:
     singular: promotionreview
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.from
+      name: From
+      type: string
+    - jsonPath: .spec.to
+      name: To
+      type: string
+    - jsonPath: .status.verdict.recommendation
+      name: Recommendation
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Merged")].status
+      name: Merged
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PromotionReview is the Schema for the promotionreviews API
+        description: |-
+          PromotionReview records one promotion between two adjacent environments.
+          It is created by the controller and is the contract between the controller and the reviewer.
         properties:
           apiVersion:
             description: |-
@@ -37,27 +55,95 @@ spec:
           metadata:
             type: object
           spec:
-            description: spec defines the desired state of PromotionReview
+            description: spec describes the promotion. It is immutable.
             properties:
-              foo:
-                description: foo is an example field of PromotionReview. Edit promotionreview_types.go
-                  to remove/update
+              changes:
+                description: changes are the promotable values that change in the
+                  target environment.
+                items:
+                  description: Change is one promotable value that changes in the
+                    target environment.
+                  properties:
+                    field:
+                      description: field is the promotable field within the file,
+                        for example images[name=checkout].newTag.
+                      maxLength: 512
+                      minLength: 1
+                      type: string
+                    from:
+                      description: from is the current value in the target environment.
+                        It is omitted when the field does not exist yet.
+                      maxLength: 512
+                      minLength: 1
+                      type: string
+                    path:
+                      description: path is the file that changes in the target environment.
+                      maxLength: 1024
+                      minLength: 1
+                      type: string
+                    to:
+                      description: to is the value promoted from the source environment.
+                      maxLength: 512
+                      minLength: 1
+                      type: string
+                  required:
+                  - field
+                  - path
+                  - to
+                  type: object
+                maxItems: 100
+                minItems: 1
+                type: array
+                x-kubernetes-list-type: atomic
+              from:
+                description: from is the source environment.
+                maxLength: 63
+                minLength: 1
                 type: string
+              policyRef:
+                description: policyRef refers to the PromotionPolicy that the promotion
+                  belongs to.
+                properties:
+                  name:
+                    description: name of the PromotionPolicy.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                required:
+                - name
+                type: object
+              sourceRevision:
+                description: sourceRevision is the commit of the source environment
+                  being promoted.
+                maxLength: 64
+                minLength: 7
+                pattern: ^[0-9a-f]+$
+                type: string
+              to:
+                description: to is the target environment, the next one in the chain.
+                maxLength: 63
+                minLength: 1
+                type: string
+            required:
+            - changes
+            - from
+            - policyRef
+            - sourceRevision
+            - to
             type: object
+            x-kubernetes-validations:
+            - message: spec is immutable
+              rule: self == oldSelf
+            - message: from and to must be different environments
+              rule: self.from != self.to
           status:
             description: status defines the observed state of PromotionReview
+            minProperties: 1
             properties:
               conditions:
                 description: |-
-                  conditions represent the current state of the PromotionReview resource.
-                  Each condition has a unique type and reflects the status of a specific aspect of the resource.
-
-                  Standard condition types include:
-                  - "Available": the resource is fully functional
-                  - "Progressing": the resource is being created or updated
-                  - "Degraded": the resource failed to reach or maintain its desired state
-
-                  The status of each condition is one of True, False, or Unknown.
+                  conditions represent the current state of the PromotionReview.
+                  GatesPassed and Merged are set by the controller, Reviewed by the reviewer.
                 items:
                   description: Condition contains details for one aspect of the current
                     state of this API Resource.
@@ -112,10 +198,115 @@ spec:
                   - status
                   - type
                   type: object
+                maxItems: 8
                 type: array
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              gates:
+                description: gates reports the result of each gate of the target environment.
+                items:
+                  description: GateStatus is the result of evaluating one gate.
+                  properties:
+                    message:
+                      description: message explains the result, for example "0 of
+                        1 approvals".
+                      maxLength: 1024
+                      minLength: 1
+                      type: string
+                    name:
+                      description: name of the gate.
+                      enum:
+                      - MinSoakTime
+                      - RequiredApprovals
+                      - FreezeWindows
+                      - ArgoCD
+                      type: string
+                    result:
+                      description: result of the evaluation.
+                      enum:
+                      - Passed
+                      - Failed
+                      - Unknown
+                      type: string
+                  required:
+                  - name
+                  - result
+                  type: object
+                maxItems: 4
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+              mergeRequest:
+                description: mergeRequest is the merge request opened for the promotion.
+                properties:
+                  url:
+                    description: url of the merge request.
+                    maxLength: 2048
+                    minLength: 9
+                    type: string
+                required:
+                - url
+                type: object
+              observedGeneration:
+                description: observedGeneration is the generation of the spec that
+                  this status reflects.
+                format: int64
+                minimum: 1
+                type: integer
+              verdict:
+                description: verdict is the reviewer's assessment of the promotion.
+                properties:
+                  evidence:
+                    description: evidence lists the facts behind the verdict.
+                    items:
+                      description: Evidence is one fact behind a verdict.
+                      properties:
+                        detail:
+                          description: detail describes the fact.
+                          maxLength: 1024
+                          minLength: 1
+                          type: string
+                        source:
+                          description: source is where the fact comes from, for example
+                            Prometheus or Argo CD.
+                          maxLength: 64
+                          minLength: 1
+                          type: string
+                      required:
+                      - detail
+                      - source
+                      type: object
+                    maxItems: 20
+                    minItems: 1
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  recommendation:
+                    description: recommendation is the reviewer's advice.
+                    enum:
+                    - Approve
+                    - Hold
+                    - Block
+                    type: string
+                  risk:
+                    description: risk is how risky the reviewer considers the promotion.
+                    enum:
+                    - Low
+                    - Medium
+                    - High
+                    type: string
+                  summary:
+                    description: summary explains the change and its risk in plain
+                      language.
+                    maxLength: 4096
+                    minLength: 1
+                    type: string
+                required:
+                - recommendation
+                - risk
+                - summary
+                type: object
             type: object
         required:
         - spec

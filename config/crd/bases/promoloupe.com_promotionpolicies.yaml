@@ -14,10 +14,19 @@ spec:
     singular: promotionpolicy
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PromotionPolicy is the Schema for the promotionpolicies API
+        description: |-
+          PromotionPolicy describes a chain of environments in a GitOps repository and
+          the rules a change must meet to be promoted from one environment to the next.
         properties:
           apiVersion:
             description: |-
@@ -39,25 +48,187 @@ spec:
           spec:
             description: spec defines the desired state of PromotionPolicy
             properties:
-              foo:
-                description: foo is an example field of PromotionPolicy. Edit promotionpolicy_types.go
-                  to remove/update
-                type: string
+              environments:
+                description: environments is the ordered chain of environments. Each
+                  one is promoted to the next.
+                items:
+                  description: Environment is one step of the promotion chain.
+                  properties:
+                    gates:
+                      description: gates are the conditions a change must meet to
+                        be promoted into this environment.
+                      minProperties: 1
+                      properties:
+                        argoCD:
+                          description: argoCD requires the previous environment to
+                            be healthy in Argo CD.
+                          properties:
+                            application:
+                              description: application is the name of the Argo CD
+                                Application.
+                              maxLength: 253
+                              minLength: 1
+                              type: string
+                            namespace:
+                              default: argocd
+                              description: namespace is the namespace of the Argo
+                                CD Application.
+                              maxLength: 63
+                              minLength: 1
+                              type: string
+                          required:
+                          - application
+                          type: object
+                        freezeWindows:
+                          description: freezeWindows are the periods in which promotions
+                            into the environment are blocked.
+                          items:
+                            description: FreezeWindow is a recurring period in which
+                              promotions are blocked.
+                            properties:
+                              durationMinutes:
+                                description: durationMinutes is the length of the
+                                  window in minutes.
+                                format: int32
+                                maximum: 43200
+                                minimum: 1
+                                type: integer
+                              schedule:
+                                description: schedule is a cron expression, in UTC,
+                                  for the start of the window.
+                                maxLength: 100
+                                minLength: 9
+                                type: string
+                            required:
+                            - durationMinutes
+                            - schedule
+                            type: object
+                          maxItems: 10
+                          minItems: 1
+                          type: array
+                          x-kubernetes-list-type: atomic
+                        minSoakTimeMinutes:
+                          description: minSoakTimeMinutes is the minimum time, in
+                            minutes, that the change must have run in the previous
+                            environment.
+                          format: int32
+                          maximum: 43200
+                          minimum: 1
+                          type: integer
+                        requiredApprovals:
+                          description: requiredApprovals is the number of approvals
+                            required on the merge request.
+                          format: int32
+                          maximum: 10
+                          minimum: 1
+                          type: integer
+                      type: object
+                    merge:
+                      default: Manual
+                      description: merge defines how promotions into this environment
+                        are merged.
+                      enum:
+                      - Manual
+                      - Automatic
+                      type: string
+                    name:
+                      description: name identifies the environment. It is a DNS label,
+                        unique within the policy.
+                      maxLength: 63
+                      minLength: 1
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      type: string
+                    path:
+                      description: path is the directory of the environment in the
+                        repository.
+                      maxLength: 1024
+                      minLength: 1
+                      type: string
+                  required:
+                  - name
+                  - path
+                  type: object
+                maxItems: 10
+                minItems: 2
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+                x-kubernetes-validations:
+                - message: the first environment cannot have gates, because nothing
+                    is promoted into it
+                  rule: '!has(self[0].gates)'
+                - message: promotions into the last environment must be merged manually
+                  rule: '!has(self[size(self) - 1].merge) || self[size(self) - 1].merge
+                    != ''Automatic'''
+              promotable:
+                default:
+                - Images
+                - HelmChartVersions
+                description: promotable lists what travels between environments.
+                items:
+                  description: PromotableKind is a kind of value that travels between
+                    environments.
+                  enum:
+                  - Images
+                  - HelmChartVersions
+                  type: string
+                maxItems: 2
+                minItems: 1
+                type: array
+                x-kubernetes-list-type: set
+              repository:
+                description: repository is the GitOps repository that holds every
+                  environment.
+                properties:
+                  branch:
+                    default: main
+                    description: branch is the branch that holds every environment.
+                    maxLength: 255
+                    minLength: 1
+                    type: string
+                  credentialsSecretRef:
+                    description: credentialsSecretRef refers to a Secret with the
+                      access token under the key token.
+                    properties:
+                      name:
+                        description: name of the Secret.
+                        maxLength: 253
+                        minLength: 1
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  provider:
+                    description: provider is the Git hosting service of the repository.
+                    enum:
+                    - GitLab
+                    type: string
+                  url:
+                    description: url is the HTTPS URL of the repository.
+                    maxLength: 2048
+                    minLength: 9
+                    type: string
+                    x-kubernetes-validations:
+                    - message: url must start with https://
+                      rule: self.startsWith('https://')
+                required:
+                - credentialsSecretRef
+                - provider
+                - url
+                type: object
+            required:
+            - environments
+            - repository
             type: object
           status:
             description: status defines the observed state of PromotionPolicy
+            minProperties: 1
             properties:
               conditions:
                 description: |-
-                  conditions represent the current state of the PromotionPolicy resource.
-                  Each condition has a unique type and reflects the status of a specific aspect of the resource.
-
-                  Standard condition types include:
-                  - "Available": the resource is fully functional
-                  - "Progressing": the resource is being created or updated
-                  - "Degraded": the resource failed to reach or maintain its desired state
-
-                  The status of each condition is one of True, False, or Unknown.
+                  conditions represent the current state of the PromotionPolicy.
+                  Ready is True when the repository is reachable and every environment is tracked.
                 items:
                   description: Condition contains details for one aspect of the current
                     state of this API Resource.
@@ -112,10 +283,47 @@ spec:
                   - status
                   - type
                   type: object
+                maxItems: 8
                 type: array
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              environments:
+                description: environments reports the observed state of each environment.
+                items:
+                  description: EnvironmentStatus is the observed state of one environment.
+                  properties:
+                    name:
+                      description: name of the environment.
+                      maxLength: 63
+                      minLength: 1
+                      type: string
+                    pendingReview:
+                      description: pendingReview is the name of the open PromotionReview
+                        from this environment to the next.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    revision:
+                      description: revision is the commit of the repository last observed
+                        for the environment.
+                      maxLength: 64
+                      minLength: 7
+                      type: string
+                  required:
+                  - name
+                  type: object
+                maxItems: 10
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: observedGeneration is the generation of the spec that
+                  this status reflects.
+                format: int64
+                minimum: 1
+                type: integer
             type: object
         required:
         - spec
