@@ -8,4 +8,23 @@ layout:
 - go.kubebuilder.io/v4
 projectName: promoloupe
 repo: github.com/promoloupe/promoloupe
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: com
+  group: promoloupe
+  kind: PromotionPolicy
+  path: github.com/promoloupe/promoloupe/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: com
+  group: promoloupe
+  kind: PromotionReview
+  path: github.com/promoloupe/promoloupe/api/v1alpha1
+  version: v1alpha1
 version: "3"
