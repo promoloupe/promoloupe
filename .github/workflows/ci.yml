@@ -86,6 +86,16 @@ jobs:
       - name: Verify go.mod and go.sum are tidy
         run: go mod tidy -diff
 
+      - name: Get the Kubernetes API version
+        id: k8s
+        run: echo "api-version=$(go list -m -f '{{.Version}}' k8s.io/api)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache envtest binaries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bin/k8s
+          key: envtest-${{ runner.os }}-${{ runner.arch }}-${{ steps.k8s.outputs.api-version }}
+
       - name: Run tests
         run: make test
 
