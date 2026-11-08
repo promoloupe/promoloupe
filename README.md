@@ -12,9 +12,10 @@ what went wrong last time. It recommends; it never promotes. A human (or a
 policy you define) still merges.
 
 > [!WARNING]
-> promoloupe is in early development. Nothing here is usable yet, APIs will
-> change without notice, and there are no releases. Follow the
-> [roadmap](#roadmap) to see where things stand.
+> promoloupe is in early development and is not usable yet. The API is
+> `v1alpha1` and will change without notice, and early releases only exercise
+> the release process. Follow the [roadmap](#roadmap) to see where things
+> stand.
 
 ## Why
 
@@ -60,8 +61,9 @@ promoloupe makes that judgement explicit, reviewable and repeatable:
 
 ## Roadmap
 
-1. **Foundations.** Monorepo, tooling, CI, community files. *(in progress)*
-2. **Operator.** CRDs, reconciliation, gates, GitLab adapter.
+1. **Foundations.** Monorepo, tooling, CI, release automation, community
+   files. *(done)*
+2. **Operator.** CRDs, reconciliation, gates, GitLab adapter. *(in progress)*
 3. **Distribution.** Signed images, SBOM, Helm chart, CLI releases.
 4. **First AI layer.** Change summaries and log triage.
 5. **Reviewer agent.** Full agentic review with MCP tools, guardrails and evals.
@@ -72,9 +74,9 @@ Architecture decisions are recorded in [`docs/adr`](docs/adr).
 
 ## Contributing
 
-Contributions are welcome once the foundations are in place. Read
-[CONTRIBUTING.md](CONTRIBUTING.md) first. Everyone taking part is expected to
-follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first, and
+open an issue before starting on a feature or an API change. Everyone taking
+part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 To report a security issue, see [SECURITY.md](SECURITY.md). Please do not open
 a public issue.
