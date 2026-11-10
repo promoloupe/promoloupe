@@ -60,10 +60,14 @@ when nothing under `reviewer/` changes. On pushes to `main`, every job runs.
 succeeded or were skipped. Jobs can be added, renamed or removed without
 touching the ruleset.
 
-The PR title check runs on `pull_request_target`, so it always uses the
-workflow from `main` and also works for pull requests from forks. It never
-checks out pull request code. A change to `pr-title.yml` only takes effect
-after it is merged.
+The PR title check runs on `pull_request`, like CI. It never checks out pull
+request code and only reads the title from the event, with read access to
+pull requests. It runs the workflow from the pull request branch, so a change
+to `pr-title.yml` takes effect in that same pull request, and review must
+catch any change that weakens it. On a first pull request from a fork, it
+waits for a maintainer to approve the workflow runs. It does not use
+`pull_request_target`, which GitHub blocks by default in public repositories
+from December 2, 2026.
 
 ## The `release-tags` ruleset
 
