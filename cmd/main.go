@@ -183,8 +183,10 @@ func main() {
 	}
 
 	if err := (&controller.PromotionPolicyReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:    mgr.GetClient(),
+		Scheme:    mgr.GetScheme(),
+		APIReader: mgr.GetAPIReader(),
+		Recorder:  mgr.GetEventRecorder("promoloupe-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "promotionpolicy")
 		os.Exit(1)

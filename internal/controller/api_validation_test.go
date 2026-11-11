@@ -39,7 +39,7 @@ var _ = Describe("API validation", func() {
 
 	Context("PromotionPolicy", func() {
 		It("accepts a valid policy and applies the defaults", func() {
-			policy := validPromotionPolicy("")
+			policy := validPromotionPolicy()
 			policy.GenerateName = "valid-"
 			Expect(k8sClient.Create(ctx, policy)).To(Succeed())
 			DeferCleanup(k8sClient.Delete, ctx, policy)
@@ -53,7 +53,7 @@ var _ = Describe("API validation", func() {
 		})
 
 		It("defaults the Argo CD namespace", func() {
-			policy := validPromotionPolicy("")
+			policy := validPromotionPolicy()
 			policy.GenerateName = "argocd-"
 			policy.Spec.Environments[2].Gates.ArgoCD = promoloupev1alpha1.ArgoCDGate{Application: "checkout-staging"}
 			Expect(k8sClient.Create(ctx, policy)).To(Succeed())
@@ -64,7 +64,7 @@ var _ = Describe("API validation", func() {
 
 		DescribeTable("rejects an invalid policy",
 			func(mutate func(*promoloupev1alpha1.PromotionPolicy), message string) {
-				policy := validPromotionPolicy("")
+				policy := validPromotionPolicy()
 				policy.GenerateName = "invalid-"
 				mutate(policy)
 				expectInvalid(k8sClient.Create(ctx, policy), message)

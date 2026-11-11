@@ -25,11 +25,11 @@ import (
 // testNamespace is the namespace where the tests create their resources.
 const testNamespace = "default"
 
-// validPromotionPolicy returns a PromotionPolicy that passes every validation rule.
-func validPromotionPolicy(name string) *promoloupev1alpha1.PromotionPolicy {
+// validPromotionPolicy returns a PromotionPolicy that passes every validation
+// rule. It has no name, so callers set Name or GenerateName.
+func validPromotionPolicy() *promoloupev1alpha1.PromotionPolicy {
 	return &promoloupev1alpha1.PromotionPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
 			Namespace: testNamespace,
 		},
 		Spec: promoloupev1alpha1.PromotionPolicySpec{

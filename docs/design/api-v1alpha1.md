@@ -36,9 +36,10 @@ kube-api-linter.
 - Every string and list has a maximum size, which also bounds the cost of the
   CEL validation rules.
 - Credentials are referenced through Secrets, never stored in a resource.
-- The controller and the reviewer write different status fields using
-  server-side apply, with the field managers `promoloupe-controller` and
-  `promoloupe-reviewer`.
+- The controller is the only writer of the PromotionPolicy status. On
+  PromotionReview, the controller and the reviewer write different status
+  fields using server-side apply, with the field managers
+  `promoloupe-controller` and `promoloupe-reviewer`.
 
 ## PromotionPolicy
 
@@ -131,6 +132,23 @@ status:
 | `environments[].pendingReview` | Name of the open PromotionReview from this environment to the next, if any. |
 
 `kubectl get promotionpolicies` shows the `Ready` condition and the age.
+
+### Ready condition
+
+| Status | Reason | Meaning |
+| --- | --- | --- |
+| `False` | `SecretNotFound` | The credentials Secret does not exist in the namespace of the policy. |
+| `False` | `TokenMissing` | The credentials Secret has no `token` key, or its value is empty. |
+| `Unknown` | `RepositoryNotChecked` | The credentials are present, but access to the repository has not been checked yet. |
+
+`RepositoryNotChecked` lasts until the GitLab adapter checks access to the
+repository. The controller emits a Kubernetes event each time the reason
+changes, a `Warning` when `Ready` is `False` and a `Normal` event otherwise.
+
+The controller reconciles a policy again when its credentials Secret is
+created, changed or deleted. It watches only the metadata of Secrets and reads
+the referenced Secret directly from the API server, so no Secret content is
+cached.
 
 ## PromotionReview
 
