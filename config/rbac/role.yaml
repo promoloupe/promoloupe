@@ -5,9 +5,40 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - promoloupe.com
   resources:
   - promotionpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - promoloupe.com
+  resources:
+  - promotionpolicies/status
+  - promotionreviews/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - promoloupe.com
+  resources:
   - promotionreviews
   verbs:
   - create
@@ -20,16 +51,6 @@ rules:
 - apiGroups:
   - promoloupe.com
   resources:
-  - promotionpolicies/finalizers
   - promotionreviews/finalizers
   verbs:
-  - update
-- apiGroups:
-  - promoloupe.com
-  resources:
-  - promotionpolicies/status
-  - promotionreviews/status
-  verbs:
-  - get
-  - patch
   - update
