@@ -107,7 +107,7 @@ status:
 | `environments[].gates` | object | No | | Conditions a change must meet to be promoted into this environment. At least one when present. |
 | `gates.minSoakTimeMinutes` | integer | No | | Minimum time, in minutes, the change must have run in the previous environment. 1 to 43200. |
 | `gates.requiredApprovals` | integer | No | | Approvals required on the merge request. 1 to 10. |
-| `gates.freezeWindows[].schedule` | string | Yes | | Cron expression, in UTC, for the start of a window in which promotions are blocked. |
+| `gates.freezeWindows[].schedule` | string | Yes | | Five-field cron expression, in UTC, for the start of a window in which promotions are blocked. It uses the syntax of Kubernetes CronJobs, without descriptors such as `@daily` or time zone prefixes. An invalid expression makes the gate `Unknown`. |
 | `gates.freezeWindows[].durationMinutes` | integer | Yes | | Length of the window in minutes. 1 to 43200. |
 | `gates.argoCD.application` | string | Yes | | Argo CD Application of the previous environment that must be Healthy and Synced. |
 | `gates.argoCD.namespace` | string | No | `argocd` | Namespace of the Argo CD Application. |

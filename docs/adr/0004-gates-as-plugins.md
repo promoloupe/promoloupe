@@ -40,3 +40,11 @@ no changes to the reconciliation logic. Each gate can be tested in isolation.
 Gates are compiled into the controller, so adding one means a new release.
 Loading gates at runtime (for example over gRPC or WebAssembly) is out of
 scope until there is clear demand for it.
+
+## Update
+
+- 2026-11-12: The `v1alpha1` API names the third result `Unknown` instead of
+  pending, and it means that the gate could not be evaluated. A condition
+  that is not met yet, such as a soak time that is still running, is
+  `Failed`, and the controller evaluates it again when its result can
+  change. See the [API design](../design/api-v1alpha1.md).
