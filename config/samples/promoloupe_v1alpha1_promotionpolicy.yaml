@@ -7,10 +7,10 @@ metadata:
   name: checkout
 spec:
   repository:
-    provider: GitLab
-    url: https://gitlab.com/acme/gitops
+    provider: GitHub
+    url: https://github.com/acme/gitops
     credentialsSecretRef:
-      name: gitlab-token
+      name: github-token
   environments:
     - name: dev
       path: apps/checkout/overlays/dev

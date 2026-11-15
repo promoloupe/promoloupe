@@ -51,11 +51,11 @@ metadata:
   namespace: team-payments
 spec:
   repository:
-    provider: GitLab
-    url: https://gitlab.com/acme/gitops
+    provider: GitHub
+    url: https://github.com/acme/gitops
     branch: main
     credentialsSecretRef:
-      name: gitlab-token
+      name: github-token
   environments:
     - name: dev
       path: apps/checkout/overlays/dev
@@ -96,7 +96,7 @@ status:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `repository.provider` | enum | Yes | | Git provider. `GitLab` is the only value in v1alpha1. |
+| `repository.provider` | enum | Yes | | Git provider. `GitHub` is the only value in v1alpha1. |
 | `repository.url` | string | Yes | | HTTPS URL of the GitOps repository. |
 | `repository.branch` | string | No | `main` | Branch that holds every environment. |
 | `repository.credentialsSecretRef.name` | string | Yes | | Secret in the same namespace with the access token under the key `token`. |
@@ -106,12 +106,13 @@ status:
 | `environments[].merge` | enum | No | `Manual` | How promotions into this environment are merged: `Manual` or `Automatic` when every gate passes. |
 | `environments[].gates` | object | No | | Conditions a change must meet to be promoted into this environment. At least one when present. |
 | `gates.minSoakTimeMinutes` | integer | No | | Minimum time, in minutes, the change must have run in the previous environment. 1 to 43200. |
-| `gates.requiredApprovals` | integer | No | | Approvals required on the merge request. 1 to 10. |
+| `gates.requiredApprovals` | integer | No | | Approvals required on the pull request. 1 to 10. |
 | `gates.freezeWindows[].schedule` | string | Yes | | Five-field cron expression, in UTC, for the start of a window in which promotions are blocked. It uses the syntax of Kubernetes CronJobs, without descriptors such as `@daily` or time zone prefixes. An invalid expression makes the gate `Unknown`. |
 | `gates.freezeWindows[].durationMinutes` | integer | Yes | | Length of the window in minutes. 1 to 43200. |
 | `gates.argoCD.application` | string | Yes | | Argo CD Application of the previous environment that must be Healthy and Synced. |
 | `gates.argoCD.namespace` | string | No | `argocd` | Namespace of the Argo CD Application. |
 | `promotable` | list of enum | No | `[Images, HelmChartVersions]` | What travels between environments (ADR 0003). |
+
 
 ### Validation
 
@@ -141,7 +142,7 @@ status:
 | `False` | `TokenMissing` | The credentials Secret has no `token` key, or its value is empty. |
 | `Unknown` | `RepositoryNotChecked` | The credentials are present, but access to the repository has not been checked yet. |
 
-`RepositoryNotChecked` lasts until the GitLab adapter checks access to the
+`RepositoryNotChecked` lasts until the GitHub adapter checks access to the
 repository. The controller emits a Kubernetes event each time the reason
 changes, a `Warning` when `Ready` is `False` and a `Normal` event otherwise.
 
@@ -175,8 +176,8 @@ spec:
       to: "1.5.0"
 status:
   observedGeneration: 1
-  mergeRequest:
-    url: https://gitlab.com/acme/gitops/-/merge_requests/42
+  pullRequest:
+    url: https://github.com/acme/gitops/pull/42
   gates:
     - name: MinSoakTime
       result: Passed
@@ -227,7 +228,7 @@ Each field has a single owner.
 | Field | Owner | Description |
 | --- | --- | --- |
 | `observedGeneration` | controller | Generation of the spec that the status reflects. |
-| `mergeRequest.url` | controller | Merge request opened for the promotion. |
+| `pullRequest.url` | controller | Pull request opened for the promotion. |
 | `gates[].name` | controller | `MinSoakTime`, `RequiredApprovals`, `FreezeWindows` or `ArgoCD`. |
 | `gates[].result` | controller | `Passed`, `Failed`, or `Unknown` when the gate could not be evaluated. |
 | `gates[].message` | controller | Explanation of the result. |
@@ -244,9 +245,9 @@ recommendation, the `Merged` condition and the age.
 
 1. The controller detects a new revision in an environment and creates a
    PromotionReview for the next one, owned by the policy.
-2. The controller opens the merge request and records it in the status.
+2. The controller opens the pull request and records it in the status.
 3. The reviewer analyses the promotion and publishes its verdict in the
-   status. The controller copies it to the merge request.
+   status. The controller copies it to the pull request.
 4. The controller evaluates the gates on every reconciliation.
 5. When the gates pass, the controller merges if the target environment uses
    `merge: Automatic`. Otherwise a person merges.
@@ -270,8 +271,9 @@ policies. A wrong verdict can only delay a promotion, never cause one.
 ## Out of scope for v1alpha1
 
 - Configuring how the verdict is used. In v1alpha1 it is always advisory: it
-  is published on the merge request and never blocks it. A future `review`
+  is published on the pull request and never blocks it. A future `review`
   field may add a mode where a `Block` verdict prevents automatic merges.
-- Git providers other than GitLab.
+- Git providers other than GitHub. Each one is an adapter of the
+  `SCMProvider` port (ADR 0009), and GitLab is planned next (ADR 0014).
 - Flux as a source of health checks (ADR 0004).
 - Time zones for freeze windows, which use UTC.

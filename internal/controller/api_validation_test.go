@@ -89,10 +89,10 @@ var _ = Describe("API validation", func() {
 				func(p *promoloupev1alpha1.PromotionPolicy) { p.Spec.Environments[0].Name = "Dev_1" },
 				"should match"),
 			Entry("with a repository URL that is not HTTPS",
-				func(p *promoloupev1alpha1.PromotionPolicy) { p.Spec.Repository.URL = "http://gitlab.com/acme/gitops" },
+				func(p *promoloupev1alpha1.PromotionPolicy) { p.Spec.Repository.URL = "http://github.com/acme/gitops" },
 				"url must start with https://"),
 			Entry("with an unsupported provider",
-				func(p *promoloupev1alpha1.PromotionPolicy) { p.Spec.Repository.Provider = "GitHub" },
+				func(p *promoloupev1alpha1.PromotionPolicy) { p.Spec.Repository.Provider = "GitLab" },
 				"Unsupported value"),
 			Entry("with too many required approvals",
 				func(p *promoloupev1alpha1.PromotionPolicy) { p.Spec.Environments[2].Gates.RequiredApprovals = 11 },
@@ -107,8 +107,8 @@ var _ = Describe("API validation", func() {
 			Expect(k8sClient.Create(ctx, review)).To(Succeed())
 			DeferCleanup(k8sClient.Delete, ctx, review)
 
-			review.Status.MergeRequest = promoloupev1alpha1.MergeRequest{
-				URL: "https://gitlab.com/acme/gitops/-/merge_requests/42",
+			review.Status.PullRequest = promoloupev1alpha1.PullRequest{
+				URL: "https://github.com/acme/gitops/pull/42",
 			}
 			Expect(k8sClient.Status().Update(ctx, review)).To(Succeed())
 		})

@@ -48,7 +48,7 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Kubernetes or OpenShift version, GitLab version (SaaS or self-managed), Argo CD version.
+      description: Kubernetes or OpenShift version, Argo CD version.
   - type: textarea
     id: logs
     attributes:

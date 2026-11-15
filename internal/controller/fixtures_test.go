@@ -34,9 +34,9 @@ func validPromotionPolicy() *promoloupev1alpha1.PromotionPolicy {
 		},
 		Spec: promoloupev1alpha1.PromotionPolicySpec{
 			Repository: promoloupev1alpha1.Repository{
-				Provider:             promoloupev1alpha1.GitProviderGitLab,
-				URL:                  "https://gitlab.com/acme/gitops",
-				CredentialsSecretRef: promoloupev1alpha1.SecretRef{Name: "gitlab-token"},
+				Provider:             promoloupev1alpha1.GitProviderGitHub,
+				URL:                  "https://github.com/acme/gitops",
+				CredentialsSecretRef: promoloupev1alpha1.SecretRef{Name: "github-token"},
 			},
 			Environments: []promoloupev1alpha1.Environment{
 				{
