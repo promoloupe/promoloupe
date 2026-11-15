@@ -28,7 +28,7 @@ type GateName string
 const (
 	// GateMinSoakTime checks the time the change has run in the previous environment.
 	GateMinSoakTime GateName = "MinSoakTime"
-	// GateRequiredApprovals checks the approvals on the merge request.
+	// GateRequiredApprovals checks the approvals on the pull request.
 	GateRequiredApprovals GateName = "RequiredApprovals"
 	// GateFreezeWindows checks that no freeze window is active.
 	GateFreezeWindows GateName = "FreezeWindows"
@@ -145,9 +145,9 @@ type PromotionReviewSpec struct {
 	Changes []Change `json:"changes,omitempty"`
 }
 
-// MergeRequest is the merge request opened for a promotion.
-type MergeRequest struct {
-	// url of the merge request.
+// PullRequest is the pull request opened for a promotion.
+type PullRequest struct {
+	// url of the pull request.
 	// +required
 	// +kubebuilder:validation:MinLength=9
 	// +kubebuilder:validation:MaxLength=2048
@@ -211,7 +211,7 @@ type Verdict struct {
 }
 
 // PromotionReviewStatus defines the observed state of PromotionReview.
-// The controller owns mergeRequest, gates and the GatesPassed and Merged conditions.
+// The controller owns pullRequest, gates and the GatesPassed and Merged conditions.
 // The reviewer owns verdict and the Reviewed condition.
 // +kubebuilder:validation:MinProperties=1
 type PromotionReviewStatus struct {
@@ -228,9 +228,9 @@ type PromotionReviewStatus struct {
 	// +kubebuilder:validation:Minimum=1
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
-	// mergeRequest is the merge request opened for the promotion.
+	// pullRequest is the pull request opened for the promotion.
 	// +optional
-	MergeRequest MergeRequest `json:"mergeRequest,omitzero"`
+	PullRequest PullRequest `json:"pullRequest,omitzero"`
 
 	// gates reports the result of each gate of the target environment.
 	// +optional

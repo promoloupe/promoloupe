@@ -117,7 +117,7 @@ spec:
                           type: integer
                         requiredApprovals:
                           description: requiredApprovals is the number of approvals
-                            required on the merge request.
+                            required on the pull request.
                           format: int32
                           maximum: 10
                           minimum: 1
@@ -202,7 +202,7 @@ spec:
                   provider:
                     description: provider is the Git hosting service of the repository.
                     enum:
-                    - GitLab
+                    - GitHub
                     type: string
                   url:
                     description: url is the HTTPS URL of the repository.

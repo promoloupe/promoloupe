@@ -34,3 +34,9 @@ pipeline uses one platform with one set of permissions.
 The project depends on GitHub's free tier for public repositories. A GitLab
 CI component, if one is added later, will be published separately in the
 GitLab CI/CD Catalog and built from this repository.
+
+## Update
+
+- 2026-11-15: GitHub replaces GitLab as the first Git provider and as the
+  host of the sample GitOps repository for integration tests. See
+  [ADR 0014](0014-github-first-git-provider.md).

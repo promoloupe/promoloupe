@@ -39,3 +39,8 @@ adapter with its own integration tests.
 
 Interfaces add some indirection, and each port must be kept small so that
 adapters for other providers remain realistic to write.
+
+## Update
+
+- 2026-11-15: The first `SCMProvider` adapter is GitHub instead of GitLab.
+  See [ADR 0014](0014-github-first-git-provider.md).

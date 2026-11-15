@@ -33,10 +33,10 @@ In addition to classic vulnerabilities, we consider these in scope:
 
 - prompt injection that makes the reviewer agent take actions, call tools or
   reach endpoints outside its read-only design
-- ways to make a promotion happen without a merge request, or with a forged
+- ways to make a promotion happen without a pull request, or with a forged
   or tampered review
 - leaks of secrets, credentials or cluster data through reviews, logs or
-  merge request comments
+  pull request comments
 - RBAC or NetworkPolicy defaults in the Helm chart that grant more than
   documented
 

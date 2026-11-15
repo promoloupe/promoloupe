@@ -22,12 +22,12 @@ import (
 )
 
 // GitProvider is the Git hosting service of a repository.
-// +kubebuilder:validation:Enum=GitLab
+// +kubebuilder:validation:Enum=GitHub
 type GitProvider string
 
 const (
-	// GitProviderGitLab is GitLab.com or a self-managed GitLab instance.
-	GitProviderGitLab GitProvider = "GitLab"
+	// GitProviderGitHub is GitHub.com.
+	GitProviderGitHub GitProvider = "GitHub"
 )
 
 // MergeMode defines how a promotion into an environment is merged.
@@ -126,7 +126,7 @@ type Gates struct {
 	// +kubebuilder:validation:Maximum=43200
 	MinSoakTimeMinutes int32 `json:"minSoakTimeMinutes,omitempty"`
 
-	// requiredApprovals is the number of approvals required on the merge request.
+	// requiredApprovals is the number of approvals required on the pull request.
 	// +optional
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=10

@@ -22,5 +22,6 @@ that supersedes the old one and update the status of both.
 | [0011](0011-no-ui-until-1-0.md) | No UI until 1.0, then an OpenShift console plugin | Accepted |
 | [0012](0012-versioned-ai-assistant-configuration.md) | Versioned configuration for AI coding assistants | Accepted |
 | [0013](0013-automated-releases-with-release-please.md) | Automated releases with release-please | Accepted |
+| [0014](0014-github-first-git-provider.md) | GitHub as the first Git provider | Accepted |
 
 New records use [template.md](template.md).

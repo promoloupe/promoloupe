@@ -5,7 +5,7 @@
 **Agentic risk review for GitOps promotions.**
 
 promoloupe watches promotions between environments in a GitOps repository
-(for example `dev` → `staging` → `prod`), opens the merge request for each one
+(for example `dev` → `staging` → `prod`), opens the pull request for each one
 and attaches an explained risk review written by an AI agent. The agent
 inspects what changes, what the target environment looks like right now and
 what went wrong last time. It recommends; it never promotes. A human (or a
@@ -30,9 +30,9 @@ promoloupe makes that judgement explicit, reviewable and repeatable:
 - **Explained, not opaque.** Every review states what was checked, what was
   found and why it matters, with links to the evidence.
 - **Recommend, never act.** The agent has read-only access to your cluster and
-  observability stack. Promotion happens only through a merge request.
+  observability stack. Promotion happens only through a pull request.
 - **GitOps native.** Environments are folders in Git, promotable values are
-  explicit YAML paths, and the merge request is the review interface.
+  explicit YAML paths, and the pull request is the review interface.
 - **Kubernetes native.** An operator reconciles `PromotionPolicy` and
   `PromotionReview` resources, so promotions are visible with the tools you
   already use.
@@ -47,7 +47,7 @@ promoloupe makes that judgement explicit, reviewable and repeatable:
    request with the promoted values.
 4. The reviewer agent gathers context through read-only MCP tools
    (Kubernetes, Prometheus, Argo CD), writes a structured verdict into the
-   `PromotionReview` status and comments on the merge request.
+   `PromotionReview` status and comments on the pull request.
 5. A human or an automerge rule decides. If the agent fails, nothing is
    promoted.
 
@@ -55,7 +55,7 @@ promoloupe makes that judgement explicit, reviewable and repeatable:
 
 | Component | Language | Role |
 | --- | --- | --- |
-| `promoloupe-controller` | Go | Kubernetes operator: policies, gates, merge requests |
+| `promoloupe-controller` | Go | Kubernetes operator: policies, gates, pull requests |
 | `promoloupe-reviewer` | Python | AI agent built on the Claude Agent SDK |
 | `promoloupe` CLI | Go | Inspect promotions and stream reviews; also a `kubectl` plugin |
 
@@ -63,7 +63,7 @@ promoloupe makes that judgement explicit, reviewable and repeatable:
 
 1. **Foundations.** Monorepo, tooling, CI, release automation, community
    files. *(done)*
-2. **Operator.** CRDs, reconciliation, gates, GitLab adapter. *(in progress)*
+2. **Operator.** CRDs, reconciliation, gates, GitHub adapter. *(in progress)*
 3. **Distribution.** Signed images, SBOM, Helm chart, CLI releases.
 4. **First AI layer.** Change summaries and log triage.
 5. **Reviewer agent.** Full agentic review with MCP tools, guardrails and evals.

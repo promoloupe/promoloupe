@@ -238,23 +238,23 @@ spec:
                 x-kubernetes-list-map-keys:
                 - name
                 x-kubernetes-list-type: map
-              mergeRequest:
-                description: mergeRequest is the merge request opened for the promotion.
-                properties:
-                  url:
-                    description: url of the merge request.
-                    maxLength: 2048
-                    minLength: 9
-                    type: string
-                required:
-                - url
-                type: object
               observedGeneration:
                 description: observedGeneration is the generation of the spec that
                   this status reflects.
                 format: int64
                 minimum: 1
                 type: integer
+              pullRequest:
+                description: pullRequest is the pull request opened for the promotion.
+                properties:
+                  url:
+                    description: url of the pull request.
+                    maxLength: 2048
+                    minLength: 9
+                    type: string
+                required:
+                - url
+                type: object
               verdict:
                 description: verdict is the reviewer's assessment of the promotion.
                 properties:
