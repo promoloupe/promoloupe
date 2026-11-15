@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/promoloupe/promoloupe/compare/v0.1.0...v0.2.0) (2026-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **api:** make GitHub the first Git provider ([#38](https://github.com/promoloupe/promoloupe/issues/38))
+
+### Features
+
+* **api:** make GitHub the first Git provider ([#38](https://github.com/promoloupe/promoloupe/issues/38)) ([060855b](https://github.com/promoloupe/promoloupe/commit/060855bb5159236c8be693e7f556c55d75e21648))
+* **controller:** check the credentials of PromotionPolicies ([#32](https://github.com/promoloupe/promoloupe/issues/32)) ([31d98bd](https://github.com/promoloupe/promoloupe/commit/31d98bd9639fc8cf99bda0d75b23e318475bb186))
+* **gates:** add the gate framework with soak time and freeze windows ([#35](https://github.com/promoloupe/promoloupe/issues/35)) ([dcbe710](https://github.com/promoloupe/promoloupe/commit/dcbe7106be193e75b5b54d7f6229d7bef94150f8))
+
 ## 0.1.0 (2026-11-08)
 
 
